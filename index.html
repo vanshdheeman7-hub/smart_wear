@@ -3,255 +3,244 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SpineGuard | Clinical Duration Analytics</title>
+    <title>SpineGuard | Postural Duration Analytics</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Syncopate:wght@400;700&family=Space+Grotesk:wght@300;500;700&display=swap');
 
         :root {
-            --bg-deep: #08020d;
-            --lightning-purple: #9d00ff;
-            --electric-blue: #00f2ff;
-            --alert-red: #ff0055;
-            --glass: rgba(0, 242, 255, 0.05);
+            --bg: #06020f;
+            --purple-glow: #8b00ff;
+            --neon-blue: #00e5ff;
+            --danger: #ff004c;
+            --glass: rgba(0, 229, 255, 0.05);
         }
 
         body {
-            background-color: var(--bg-deep);
+            background-color: var(--bg);
             background-image: 
-                radial-gradient(circle at 15% 15%, rgba(157, 0, 255, 0.2) 0%, transparent 40%),
-                radial-gradient(circle at 85% 85%, rgba(0, 242, 255, 0.1) 0%, transparent 40%);
+                radial-gradient(circle at 10% 10%, rgba(139, 0, 255, 0.15) 0%, transparent 40%),
+                radial-gradient(circle at 90% 90%, rgba(0, 229, 255, 0.1) 0%, transparent 40%);
             color: #ffffff;
             font-family: 'Space Grotesk', sans-serif;
             margin: 0; padding: 40px;
-            min-height: 100vh;
         }
 
-        .header-container {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 2px solid var(--lightning-purple);
-            padding-bottom: 20px;
-            margin-bottom: 40px;
+        header {
+            border-bottom: 2px solid var(--purple-glow);
+            padding-bottom: 20px; margin-bottom: 40px;
+            display: flex; justify-content: space-between; align-items: center;
         }
 
-        h1 { font-family: 'Syncopate'; font-size: 2.2rem; margin: 0; letter-spacing: 5px; color: var(--electric-blue); }
+        h1 { font-family: 'Syncopate'; font-size: 2rem; color: var(--neon-blue); margin: 0; letter-spacing: 4px; }
 
-        .dashboard-main {
-            display: grid;
-            grid-template-columns: 500px 1fr;
-            gap: 40px;
-            max-width: 1700px;
-            margin: 0 auto;
+        .dashboard-layout {
+            display: grid; grid-template-columns: 450px 1fr; gap: 30px; max-width: 1600px; margin: 0 auto;
         }
 
-        .card {
+        .panel {
             background: var(--glass);
-            backdrop-filter: blur(30px);
-            border: 1px solid rgba(157, 0, 255, 0.3);
-            border-radius: 40px;
-            padding: 50px;
-            box-shadow: 0 0 60px rgba(0,0,0,0.5);
+            backdrop-filter: blur(25px);
+            border: 1px solid rgba(139, 0, 255, 0.3);
+            border-radius: 35px; padding: 45px;
+            box-shadow: 0 0 50px rgba(0,0,0,0.5);
         }
 
-        .full-span { grid-column: 1 / -1; }
+        .full-width { grid-column: 1 / -1; }
 
-        h2 { font-family: 'Syncopate'; font-size: 0.9rem; color: var(--lightning-purple); margin-bottom: 30px; letter-spacing: 2px; }
+        h2 { font-family: 'Syncopate'; font-size: 0.8rem; color: var(--purple-glow); margin-bottom: 25px; letter-spacing: 2px; }
 
-        /* --- BIG DATA DISPLAYS --- */
-        #wearerName {
-            background: rgba(0,0,0,0.5); border: 2px solid var(--electric-blue);
-            padding: 25px; font-size: 2rem; color: white; border-radius: 20px; width: 100%;
-            box-sizing: border-box; outline: none;
+        /* --- BIG DATA ELEMENTS --- */
+        #wearerInput {
+            background: rgba(0,0,0,0.5); border: 2px solid var(--neon-blue);
+            padding: 20px; font-size: 1.8rem; color: white; border-radius: 15px; width: 100%; box-sizing: border-box;
         }
 
-        .big-angle { font-size: 8rem; font-weight: 800; text-align: center; color: white; text-shadow: 0 0 40px var(--electric-blue); margin: 20px 0; }
+        .angle-val { font-size: 7rem; font-weight: 800; text-align: center; color: white; text-shadow: 0 0 30px var(--neon-blue); margin: 10px 0; }
         
-        .timer-box { 
-            font-family: 'Syncopate'; font-size: 3rem; text-align: center; color: var(--alert-red); 
-            display: none; text-shadow: 0 0 20px var(--alert-red); animation: pulse 1s infinite;
+        .timer-display {
+            font-family: 'Syncopate'; font-size: 3rem; text-align: center; color: var(--danger);
+            margin-top: 20px; display: none; animation: blink 0.8s infinite;
         }
 
-        @keyframes pulse { 50% { opacity: 0.5; } }
+        @keyframes blink { 50% { opacity: 0.4; } }
 
-        /* --- CHART STYLING --- */
-        .axis-label { color: var(--electric-blue); font-weight: bold; font-size: 1.2rem; text-align: center; margin-top: 10px; }
+        /* --- CHART AXIS LABELS --- */
+        .axis-container { display: flex; justify-content: space-between; margin-top: 15px; font-weight: bold; color: var(--neon-blue); font-size: 1rem; }
 
-        /* --- SIMULATION TOOL --- */
+        /* --- SIMULATION DOCK --- */
         .sim-dock {
-            background: rgba(10, 0, 20, 0.9);
-            padding: 50px; border-radius: 40px; border: 2px solid var(--electric-blue);
-            display: flex; align-items: center; gap: 50px; margin-top: 50px;
+            background: rgba(10, 5, 20, 0.95);
+            padding: 40px; border-radius: 30px; border: 2px solid var(--neon-blue);
+            display: flex; align-items: center; gap: 40px; margin-top: 40px;
         }
 
-        input[type="range"] { flex: 1; accent-color: var(--electric-blue); height: 20px; cursor: pointer; }
+        input[type="range"] { flex: 1; accent-color: var(--neon-blue); height: 15px; cursor: pointer; }
 
         /* --- LOGS --- */
-        table { width: 100%; border-collapse: collapse; font-size: 1.3rem; }
-        th { text-align: left; color: var(--electric-blue); padding: 20px; border-bottom: 2px solid var(--lightning-purple); }
-        td { padding: 20px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        table { width: 100%; border-collapse: collapse; font-size: 1.2rem; }
+        th { text-align: left; color: var(--neon-blue); padding: 15px; border-bottom: 2px solid var(--purple-glow); }
+        td { padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.05); }
     </style>
 </head>
 <body>
 
-<div class="header-container">
-    <h1>SPINEGUARD <span style="font-weight:300; color:white;">AI</span></h1>
-    <div id="sysClock" style="font-family:monospace; font-size:1.5rem; color:var(--lightning-purple);">00:00:00</div>
-</div>
+<header>
+    <h1>SPINEGUARD <span style="font-weight:300; color:white;">ANALYTICS</span></h1>
+    <div id="statusLabel" style="color:var(--neon-blue); font-weight:bold; letter-spacing:2px;">SYSTEM_ACTIVE</div>
+</header>
 
-<div class="dashboard-main">
+<div class="dashboard-layout">
     
-    <div class="card">
+    <div class="panel">
         <h2>Person Wearing</h2>
-        <input type="text" id="wearerName" placeholder="NAME OF PERSON..." onchange="saveInfo()">
+        <input type="text" id="wearerInput" placeholder="SUBJECT NAME..." onchange="saveName()">
         
-        <div style="margin-top:60px;">
-            <h2>Current Spline Bend</h2>
-            <div class="big-angle" id="angleDisplay">0°</div>
+        <div style="margin-top:50px;">
+            <h2>Live Flex Sensor</h2>
+            <div class="angle-val" id="liveAngle">0°</div>
         </div>
 
-        <div style="margin-top:60px;">
-            <div class="timer-box" id="durationTimer">0.0s</div>
-            <div id="statusMsg" style="text-align:center; font-size:1.5rem; color:var(--electric-blue); font-weight:bold;">STATUS: OPTIMAL</div>
-        </div>
-    </div>
-
-    <div class="card">
-        <h2>Postural Strain Duration Analysis</h2>
-        <canvas id="strainChart" height="250"></canvas>
-        <div style="display:flex; justify-content:space-between; margin-top:20px;">
-            <div class="axis-label">← TIME ELAPSED IN WRONG POSITION (SEC) →</div>
-            <div class="axis-label">↑ ANGLE MAGNITUDE (°)</div>
+        <div style="margin-top:50px;">
+            <div class="timer-display" id="slouchTimer">0.0s</div>
+            <div id="diagnosis" style="text-align:center; font-size:1.3rem; color:var(--neon-blue); font-weight:bold;">POSITION: STABLE</div>
         </div>
     </div>
 
-    <div class="card full-span">
-        <h2>Historical Incident Log</h2>
+    <div class="panel">
+        <h2>Postural Breach Durations</h2>
+        <canvas id="durationChart" height="240"></canvas>
+        <div class="axis-container">
+            <div>← INCIDENT NUMBER (ORDER OF OCCURRENCE)</div>
+            <div>TIME DURATION SPENT IN POSITION (SECONDS) ↑</div>
+        </div>
+    </div>
+
+    <div class="panel full-width">
+        <h2>Historical Incident Record</h2>
         <table>
-            <thead><tr><th>TIMESTAMP</th><th>NAME</th><th>MAX ANGLE</th><th>TOTAL DURATION</th><th>STATUS</th></tr></thead>
-            <tbody id="incidentList"></tbody>
+            <thead><tr><th>INCIDENT ID</th><th>NAME</th><th>PEAK ANGLE</th><th>TOTAL DURATION</th><th>OUTCOME</th></tr></thead>
+            <tbody id="logTable"></tbody>
         </table>
     </div>
 
-    <div class="full-span sim-dock">
-        <div style="font-family:'Syncopate'; font-size:1rem; color:var(--lightning-purple);">SENSOR_SIMULATOR</div>
-        <input type="range" id="flexSim" min="0" max="100" value="0" oninput="runSystem(this.value)">
-        <div id="simPercent" style="font-size:3rem; font-weight:bold; color:var(--electric-blue); width:120px;">0%</div>
+    <div class="full-width sim-dock">
+        <div style="font-family:'Syncopate'; font-size:0.8rem; color:var(--purple-glow);">BEND_SIMULATOR</div>
+        <input type="range" id="simSlider" min="0" max="100" value="0" oninput="handleSim(this.value)">
+        <div id="simPercent" style="font-size:2.5rem; font-weight:bold; color:var(--neon-blue); width:100px;">0%</div>
     </div>
 
 </div>
 
 <script>
-    let strainChart;
-    let startTime = null;
-    let alarmActive = false;
+    let slouchStart = null;
+    let incidentCount = 0;
+    let alarmPlaying = false;
 
-    // Initialize the Scatter Chart (Angle vs Time)
-    const ctx = document.getElementById('strainChart').getContext('2d');
-    strainChart = new Chart(ctx, {
-        type: 'line',
+    // The Chart setup
+    const ctx = document.getElementById('durationChart').getContext('2d');
+    const chart = new Chart(ctx, {
+        type: 'bar', // Bar chart is best for comparing discrete events
         data: {
+            labels: [], // Incident IDs (1, 2, 3...)
             datasets: [{
-                label: 'Posture Deviation Path',
-                data: [],
-                borderColor: '#00f2ff',
-                backgroundColor: 'rgba(0, 242, 255, 0.2)',
-                borderWidth: 5,
-                fill: true,
-                tension: 0.4,
-                pointRadius: 8,
-                pointBackgroundColor: '#ff0055'
+                label: 'Duration (Seconds)',
+                data: [], // How many seconds the person stayed bent
+                backgroundColor: 'rgba(0, 229, 255, 0.4)',
+                borderColor: '#00e5ff',
+                borderWidth: 2,
+                borderRadius: 10,
+                hoverBackgroundColor: '#ff004c'
             }]
         },
         options: {
             scales: {
-                x: { 
-                    type: 'linear', position: 'bottom',
-                    title: { display: true, text: 'TIME (SECONDS)', color: '#00f2ff', font: { size: 16, weight: 'bold' } },
-                    grid: { color: 'rgba(255,255,255,0.05)' },
-                    ticks: { color: '#fff' }
-                },
                 y: { 
-                    beginAtZero: true, max: 100,
-                    title: { display: true, text: 'BEND ANGLE (DEGREE)', color: '#00f2ff', font: { size: 16, weight: 'bold' } },
+                    beginAtZero: true, 
+                    title: { display: true, text: 'SECONDS', color: '#fff' },
                     grid: { color: 'rgba(255,255,255,0.05)' },
-                    ticks: { color: '#fff' }
+                    ticks: { color: '#00e5ff' }
+                },
+                x: { 
+                    title: { display: true, text: 'INCIDENT #', color: '#fff' },
+                    grid: { display: false },
+                    ticks: { color: '#8b00ff' }
                 }
             },
             plugins: { legend: { display: false } }
         }
     });
 
-    function trigger5SecAlarm() {
-        if (alarmActive) return;
-        alarmActive = true;
-
+    function playBeep() {
+        if (alarmPlaying) return;
+        alarmPlaying = true;
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
         osc.connect(gain); gain.connect(audioCtx.destination);
         osc.type = 'square'; osc.frequency.value = 880; gain.gain.value = 0.05;
         osc.start();
-        setTimeout(() => { osc.stop(); alarmActive = false; }, 5000);
+        setTimeout(() => { osc.stop(); alarmPlaying = false; }, 5000); // 5 sec alert
     }
 
-    function runSystem(val) {
+    function handleSim(val) {
         document.getElementById('simPercent').innerText = val + "%";
-        document.getElementById('angleDisplay').innerText = val + "°";
+        document.getElementById('liveAngle').innerText = val + "°";
         const v = parseInt(val);
-
-        const timerBox = document.getElementById('durationTimer');
-        const status = document.getElementById('statusMsg');
+        const timerUI = document.getElementById('slouchTimer');
+        const diag = document.getElementById('diagnosis');
 
         if (v > 60) {
-            if (!startTime) {
-                startTime = Date.now();
-                timerBox.style.display = 'block';
-                status.innerText = "STATUS: CRITICAL BEND";
-                status.style.color = "var(--alert-red)";
-                trigger5SecAlarm();
+            // PERSON IS SLOUCHING
+            if (!slouchStart) {
+                slouchStart = Date.now();
+                timerUI.style.display = 'block';
+                diag.innerText = "POSITION: BREACH DETECTED";
+                diag.style.color = "var(--danger)";
+                playBeep();
             }
-
-            let elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
-            timerBox.innerText = elapsed + "s";
-
-            // Push Data: X is Time, Y is Angle
-            strainChart.data.datasets[0].data.push({ x: parseFloat(elapsed), y: v });
-            strainChart.update('none');
-
+            let elapsed = ((Date.now() - slouchStart) / 1000).toFixed(1);
+            timerUI.innerText = elapsed + "s";
         } else {
-            if (startTime) {
-                const finalDuration = ((Date.now() - startTime) / 1000).toFixed(1);
-                logIncident(finalDuration, v);
-                startTime = null;
-                timerBox.style.display = 'none';
-                status.innerText = "STATUS: OPTIMAL";
-                status.style.color = "var(--electric-blue)";
-                // Reset graph for new incident
-                strainChart.data.datasets[0].data = [];
-                strainChart.update();
+            // PERSON CORRECTED POSTURE
+            if (slouchStart) {
+                const totalSecs = ((Date.now() - slouchStart) / 1000).toFixed(1);
+                finishIncident(totalSecs, v);
+                slouchStart = null;
+                timerUI.style.display = 'none';
+                diag.innerText = "POSITION: STABLE";
+                diag.style.color = "var(--neon-blue)";
             }
         }
     }
 
-    function logIncident(dur, ang) {
-        const list = document.getElementById('incidentList');
-        const name = document.getElementById('wearerName').value || "USER_ALPHA";
-        const row = list.insertRow(0);
-        row.innerHTML = `<td>${new Date().toLocaleTimeString()}</td><td>${name}</td><td>${ang}°</td><td>${dur} Seconds</td><td style="color:var(--alert-red); font-weight:bold;">ALARM TRIGGERED</td>`;
+    function finishIncident(duration, peakAngle) {
+        incidentCount++;
+        
+        // 1. Update the Chart (X = Incident ID, Y = Seconds stayed in that angle)
+        chart.data.labels.push("Slouch #" + incidentCount);
+        chart.data.datasets[0].data.push(duration);
+        chart.update();
+
+        // 2. Update the Table
+        const table = document.getElementById('logTable');
+        const name = document.getElementById('wearerInput').value || "USER_PROTOTYPE";
+        const row = table.insertRow(0);
+        row.innerHTML = `
+            <td>#${incidentCount}</td>
+            <td>${name}</td>
+            <td>${peakAngle}°</td>
+            <td>${duration} Seconds</td>
+            <td style="color:var(--danger); font-weight:bold;">ALARM TRIGGERED</td>
+        `;
     }
 
-    function saveInfo() {
-        localStorage.setItem('spineWearer', document.getElementById('wearerName').value);
+    function saveName() {
+        localStorage.setItem('wearerName', document.getElementById('wearerInput').value);
     }
-
-    setInterval(() => {
-        document.getElementById('sysClock').innerText = new Date().toLocaleTimeString();
-    }, 1000);
 
     window.onload = () => {
-        document.getElementById('wearerName').value = localStorage.getItem('spineWearer') || "";
+        document.getElementById('wearerInput').value = localStorage.getItem('wearerName') || "";
     };
 </script>
 
