@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SpineGuard | Smart Wearable Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --danger: #ef4444;
+            --success: #22c55e;
+            --dark: #1e293b;
+            --light: #f8fafc;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            background-color: #f1f5f9;
+            color: var(--dark);
+        }
+
+        nav {
+            background: var(--dark);
+            color: white;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+
+        .card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .full-width { grid-column: span 2; }
+
+        h2 { margin-top: 0; border-bottom: 2px solid #e2e8f0; padding-bottom: 0.5rem; }
+
+        .status-badge {
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: bold;
+            display: inline-block;
+            margin-bottom: 1rem;
+        }
+
+        .good { background: #dcfce7; color: var(--success); }
+        .bad { background: #fee2e2; color: var(--danger); }
+
+        .btn {
+            padding: 0.6rem 1.2rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: 0.3s;
+        }
+
+        .btn-clear { background: var(--danger); color: white; }
+        .btn-clear:hover { background: #b91c1c; }
+
+        #log-container {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #e2e8f0;
+            padding: 0.5rem;
+            border-radius: 6px;
+            font-family: monospace;
+        }
+
+        .user-input {
+            margin-bottom: 1rem;
+            display: flex;
+            gap: 10px;
+        }
+
+        input {
+            padding: 0.5rem;
+            border: 1px solid #cbd5e1;
+            border-radius: 4px;
+            flex-grow: 1;
+        }
+    </style>
+</head>
+<body>
+
+<nav>
+    <div style="font-size: 1.5rem; font-weight: bold;">SpineGuard AI</div>
+    <div>Wearable Flex-Sensing Project</div>
+</nav>
+
+<div class="container">
+    
+    <div class="card">
+        <h2>Active User</h2>
+        <div class="user-input">
+            <input type="text" id="userName" placeholder="Enter name of wearer..." onchange="updateUser()">
+        </div>
+        <p>Current Wearer: <strong id="displayName">Guest User</strong></p>
+        <div id="statusIndicator" class="status-badge good">POSTURE: OPTIMAL</div>
+        <p>Flex Sensor Reading: <span id="sensorValue">0</span>°</p>
+    </div>
+
+    <div class="card">
+        <h2>Device Simulation</h2>
+        <p>Use this slider to simulate the Arduino's flex sensor input for the panel.</p>
+        <input type="range" id="flexSlider" min="0" max="100" value="10" style="width: 100%;" oninput="simulateData(this.value)">
+        <p style="font-size: 0.8rem; color: #64748b;">(Trigger point set at 60° bend)</p>
+    </div>
+
+    <div class="card full-width">
+        <h2>Daily Progress Tracking</h2>
+        <canvas id="progressChart" height="100"></canvas>
+    </div>
+
+    <div class="card full-width">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h2>Alert History</h2>
+            <button class="btn btn-clear" onclick="clearHistory()">Clear History</button>
+        </div>
+        <div id="log-container">
+            <div id="logs">No incidents recorded today.</div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let chart;
+    let historyData = JSON.parse(localStorage.getItem('spineLogs')) || [];
+    let alertCount = 0;
+
+    // Initialize Chart
+    function initChart() {
+        const ctx = document.getElementById('progressChart').getContext('2d');
+        chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: Array(10).fill(''),
+                datasets: [{
+                    label: 'Spine Curvature (°)',
+                    data: [],
+                    borderColor: '#2563eb',
+                    tension: 0.4,
+                    fill: true,
+                    backgroundColor: 'rgba(37, 99, 235, 0.1)'
+                }]
+            },
+            options: { scales: { y: { beginAtZero: true, max: 100 } } }
+        });
+    }
+
+    // Handle Audio Beep
+    function playBeep() {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+
+        oscillator.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+
+        oscillator.type = 'square';
+        oscillator.frequency.setValueAtTime(880, audioCtx.currentTime); // A5 note
+        gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+
+        oscillator.start();
+        oscillator.stop(audioCtx.currentTime + 0.2);
+    }
+
+    function updateUser() {
+        const name = document.getElementById('userName').value;
+        document.getElementById('displayName').innerText = name || "Guest User";
+    }
+
+    function simulateData(val) {
+        document.getElementById('sensorValue').innerText = val;
+        
+        // Update Chart
+        chart.data.datasets[0].data.push(val);
+        if (chart.data.datasets[0].data.length > 15) chart.data.datasets[0].data.shift();
+        chart.update();
+
+        const indicator = document.getElementById('statusIndicator');
+        
+        if (val > 60) {
+            indicator.innerText = "POSTURE: POOR - BENDING DETECTED";
+            indicator.className = "status-badge bad";
+            logIncident(val);
+            playBeep();
+        } else {
+            indicator.innerText = "POSTURE: OPTIMAL";
+            indicator.className = "status-badge good";
+        }
+    }
+
+    function logIncident(val) {
+        const time = new Date().toLocaleTimeString();
+        const name = document.getElementById('displayName').innerText;
+        const entry = `${time} - Warning: ${name} exceeded flex threshold (${val}°)`;
+        
+        historyData.unshift(entry);
+        localStorage.setItem('spineLogs', JSON.stringify(historyData.slice(0, 50)));
+        renderLogs();
+    }
+
+    function renderLogs() {
+        const logDiv = document.getElementById('logs');
+        logDiv.innerHTML = historyData.map(item => `<div>${item}</div>`).join('');
+    }
+
+    function clearHistory() {
+        historyData = [];
+        localStorage.removeItem('spineLogs');
+        renderLogs();
+    }
+
+    // Run on Load
+    initChart();
+    renderLogs();
+</script>
+
+</body>
+</html>
