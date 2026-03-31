@@ -3,233 +3,294 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SpineGuard | Smart Wearable Dashboard</title>
+    <title>SpineGuard AI | Digital Twin Simulation</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
-            --primary: #2563eb;
-            --danger: #ef4444;
-            --success: #22c55e;
-            --dark: #1e293b;
-            --light: #f8fafc;
+            --bg: #0b0f1a;
+            --card: rgba(23, 32, 53, 0.8);
+            --accent: #00d2ff;
+            --danger: #ff4b2b;
+            --success: #00ff87;
+            --text: #e0e6ed;
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
             margin: 0;
-            background-color: #f1f5f9;
-            color: var(--dark);
+            overflow-x: hidden;
+        }
+
+        /* Animated Background Mesh */
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0; width: 100%; height: 100%;
+            background: linear-gradient(rgba(0, 210, 255, 0.05) 1px, transparent 1px),
+                        linear-gradient(90deg, rgba(0, 210, 255, 0.05) 1px, transparent 1px);
+            background-size: 30px 30px;
+            z-index: -1;
         }
 
         nav {
-            background: var(--dark);
-            color: white;
-            padding: 1rem 2rem;
+            padding: 1.5rem 5%;
+            background: rgba(11, 15, 26, 0.9);
+            border-bottom: 1px solid rgba(0, 210, 255, 0.3);
             display: flex;
             justify-content: space-between;
             align-items: center;
+            backdrop-filter: blur(10px);
         }
 
         .container {
-            max-width: 1100px;
+            max-width: 1300px;
             margin: 2rem auto;
-            padding: 0 1rem;
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 2rem;
+            grid-template-columns: 400px 1fr 300px;
+            gap: 1.5rem;
+            padding: 0 20px;
         }
 
         .card {
-            background: white;
-            padding: 1.5rem;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        }
-
-        .full-width { grid-column: span 2; }
-
-        h2 { margin-top: 0; border-bottom: 2px solid #e2e8f0; padding-bottom: 0.5rem; }
-
-        .status-badge {
-            padding: 0.5rem 1rem;
+            background: var(--card);
+            border: 1px solid rgba(255,255,255,0.1);
             border-radius: 20px;
-            font-weight: bold;
-            display: inline-block;
-            margin-bottom: 1rem;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
         }
 
-        .good { background: #dcfce7; color: var(--success); }
-        .bad { background: #fee2e2; color: var(--danger); }
-
-        .btn {
-            padding: 0.6rem 1.2rem;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: 0.3s;
-        }
-
-        .btn-clear { background: var(--danger); color: white; }
-        .btn-clear:hover { background: #b91c1c; }
-
-        #log-container {
-            max-height: 200px;
-            overflow-y: auto;
-            border: 1px solid #e2e8f0;
-            padding: 0.5rem;
-            border-radius: 6px;
-            font-family: monospace;
-        }
-
-        .user-input {
-            margin-bottom: 1rem;
+        /* --- THE 3D SIMULATOR --- */
+        .spine-visualizer {
+            height: 300px;
             display: flex;
-            gap: 10px;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            perspective: 1000px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 15px;
+            margin-top: 15px;
+            position: relative;
         }
 
-        input {
-            padding: 0.5rem;
-            border: 1px solid #cbd5e1;
+        .vertebra {
+            width: 40px;
+            height: 15px;
+            background: var(--accent);
+            margin: 4px;
             border-radius: 4px;
-            flex-grow: 1;
+            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 0 10px rgba(0, 210, 255, 0.5);
         }
+
+        .warning-glow { background: var(--danger) !important; box-shadow: 0 0 20px var(--danger) !important; }
+
+        /* --- CONTROLS --- */
+        .simulation-controls {
+            grid-column: span 3;
+            background: linear-gradient(90deg, #172035, #1e293b);
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            padding: 25px;
+        }
+
+        input[type="range"] {
+            flex-grow: 1;
+            height: 10px;
+            border-radius: 5px;
+            appearance: none;
+            background: #2d3748;
+            outline: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            appearance: none;
+            width: 25px; height: 25px;
+            background: var(--accent);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 15px var(--accent);
+        }
+
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
+        .stat-box { background: rgba(0,0,0,0.2); padding: 10px; border-radius: 10px; text-align: center; }
+        .stat-val { font-size: 1.2rem; font-weight: bold; color: var(--accent); }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th { text-align: left; font-size: 0.8rem; color: #64748b; padding: 10px; }
+        td { padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 0.85rem; }
+
+        .badge { padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: bold; }
+        .badge-danger { background: rgba(255, 75, 43, 0.2); color: var(--danger); border: 1px solid var(--danger); }
     </style>
 </head>
 <body>
 
 <nav>
-    <div style="font-size: 1.5rem; font-weight: bold;">SpineGuard AI</div>
-    <div>Wearable Flex-Sensing Project</div>
+    <div style="display:flex; align-items:center; gap:10px;">
+        <div style="width:12px; height:12px; background:var(--success); border-radius:50%; box-shadow:0 0 10px var(--success);"></div>
+        <span style="font-weight:bold; letter-spacing:1px;">SPINEGUARD <span style="color:var(--accent)">INTEL</span></span>
+    </div>
+    <div id="clock" style="font-family:monospace; color:var(--accent);">00:00:00</div>
 </nav>
 
 <div class="container">
     
     <div class="card">
-        <h2>Active User</h2>
-        <div class="user-input">
-            <input type="text" id="userName" placeholder="Enter name of wearer..." onchange="updateUser()">
+        <h2>System Calibration</h2>
+        <label style="font-size: 0.8rem; color:#888;">Active Patient Name</label>
+        <input type="text" id="pName" placeholder="Click to name..." style="background:none; border:1px solid #333; color:white; padding:10px; width:90%; border-radius:8px; margin-bottom:20px;">
+        
+        <div class="stats-grid">
+            <div class="stat-box"><div class="stat-val" id="angleText">0°</div><div style="font-size:0.6rem">ANGLE</div></div>
+            <div class="stat-box"><div class="stat-val" id="stressLevel">LOW</div><div style="font-size:0.6rem">STRESS</div></div>
         </div>
-        <p>Current Wearer: <strong id="displayName">Guest User</strong></p>
-        <div id="statusIndicator" class="status-badge good">POSTURE: OPTIMAL</div>
-        <p>Flex Sensor Reading: <span id="sensorValue">0</span>°</p>
+
+        <div class="spine-visualizer" id="spineBox">
+            <div style="position:absolute; top:10px; font-size:0.6rem; color:var(--accent)">3D DIGITAL TWIN MODEL</div>
+        </div>
     </div>
 
     <div class="card">
-        <h2>Device Simulation</h2>
-        <p>Use this slider to simulate the Arduino's flex sensor input for the panel.</p>
-        <input type="range" id="flexSlider" min="0" max="100" value="10" style="width: 100%;" oninput="simulateData(this.value)">
-        <p style="font-size: 0.8rem; color: #64748b;">(Trigger point set at 60° bend)</p>
-    </div>
-
-    <div class="card full-width">
-        <h2>Daily Progress Tracking</h2>
-        <canvas id="progressChart" height="100"></canvas>
-    </div>
-
-    <div class="card full-width">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-            <h2>Alert History</h2>
-            <button class="btn btn-clear" onclick="clearHistory()">Clear History</button>
-        </div>
-        <div id="log-container">
-            <div id="logs">No incidents recorded today.</div>
+        <h2>Live Wearable Telemetry</h2>
+        <canvas id="liveChart" height="180"></canvas>
+        
+        <div style="margin-top:20px;">
+            <h3>Session History</h3>
+            <table>
+                <thead><tr><th>Time</th><th>User</th><th>Deviation</th><th>Alert</th></tr></thead>
+                <tbody id="logTable"></tbody>
+            </table>
         </div>
     </div>
+
+    <div class="card">
+        <h2>Node Status</h2>
+        <div style="font-size: 0.8rem; line-height: 1.6;">
+            <p><b style="color:var(--accent)">Sensor:</b> Flex Resistor 2.2"</p>
+            <p><b style="color:var(--accent)">Baud Rate:</b> 9600 bps</p>
+            <p><b style="color:var(--accent)">Mcu:</b> Arduino Nano</p>
+            <hr style="border:0; border-top:1px solid #333;">
+            <p>The system utilizes a 10-bit Analog-to-Digital Converter (ADC) to translate physical spine curvature into a mapped 120° coordinate system.</p>
+        </div>
+        <button onclick="clearLogs()" style="width:100%; padding:10px; background:none; border:1px solid var(--danger); color:var(--danger); border-radius:8px; cursor:pointer; margin-top:20px;">PURGE SESSION MEMORY</button>
+    </div>
+
+    <div class="card simulation-controls">
+        <div style="white-space:nowrap;">
+            <div style="font-weight:bold; color:var(--accent)">MANUAL SIMULATOR</div>
+            <div style="font-size:0.7rem; color:#888;">Slide to mimic sensor bend</div>
+        </div>
+        <input type="range" id="simSlider" min="0" max="100" value="0" oninput="runSim(this.value)">
+        <div id="simValue" style="font-size:1.5rem; font-weight:bold; width:60px;">0%</div>
+    </div>
+
 </div>
 
 <script>
-    let chart;
-    let historyData = JSON.parse(localStorage.getItem('spineLogs')) || [];
-    let alertCount = 0;
-
-    // Initialize Chart
-    function initChart() {
-        const ctx = document.getElementById('progressChart').getContext('2d');
-        chart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: Array(10).fill(''),
-                datasets: [{
-                    label: 'Spine Curvature (°)',
-                    data: [],
-                    borderColor: '#2563eb',
-                    tension: 0.4,
-                    fill: true,
-                    backgroundColor: 'rgba(37, 99, 235, 0.1)'
-                }]
-            },
-            options: { scales: { y: { beginAtZero: true, max: 100 } } }
-        });
+    // 1. Setup Spine Segments
+    const spineBox = document.getElementById('spineBox');
+    const segments = [];
+    for(let i=0; i<8; i++) {
+        const div = document.createElement('div');
+        div.className = 'vertebra';
+        spineBox.appendChild(div);
+        segments.push(div);
     }
 
-    // Handle Audio Beep
-    function playBeep() {
+    // 2. Setup Chart
+    const ctx = document.getElementById('liveChart').getContext('2d');
+    const chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: Array(30).fill(''),
+            datasets: [{
+                label: 'Real-time Flex',
+                data: Array(30).fill(0),
+                borderColor: '#00d2ff',
+                backgroundColor: 'rgba(0, 210, 255, 0.1)',
+                fill: true,
+                tension: 0.3,
+                borderWidth: 2,
+                pointRadius: 0
+            }]
+        },
+        options: {
+            scales: { y: { beginAtZero: true, max: 100, grid: { color: '#1e293b' } }, x: { display: false } },
+            plugins: { legend: { display: false } }
+        }
+    });
+
+    // 3. Audio Engine
+    function beep() {
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        const oscillator = audioCtx.createOscillator();
-        const gainNode = audioCtx.createGain();
-
-        oscillator.connect(gainNode);
-        gainNode.connect(audioCtx.destination);
-
-        oscillator.type = 'square';
-        oscillator.frequency.setValueAtTime(880, audioCtx.currentTime); // A5 note
-        gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
-
-        oscillator.start();
-        oscillator.stop(audioCtx.currentTime + 0.2);
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain); gain.connect(audioCtx.destination);
+        osc.frequency.value = 1000;
+        gain.gain.value = 0.1;
+        osc.start(); osc.stop(audioCtx.currentTime + 0.1);
     }
 
-    function updateUser() {
-        const name = document.getElementById('userName').value;
-        document.getElementById('displayName').innerText = name || "Guest User";
-    }
-
-    function simulateData(val) {
-        document.getElementById('sensorValue').innerText = val;
+    // 4. Simulation Logic
+    function runSim(val) {
+        document.getElementById('simValue').innerText = val + "%";
+        document.getElementById('angleText').innerText = val + "°";
         
+        // Update 3D Spine Simulation
+        segments.forEach((seg, index) => {
+            const bendFactor = (val / 10) * (index * 0.5);
+            seg.style.transform = `rotateX(${bendFactor}deg) translateX(${bendFactor/2}px)`;
+            
+            if (val > 60) {
+                seg.classList.add('warning-glow');
+            } else {
+                seg.classList.remove('warning-glow');
+            }
+        });
+
         // Update Chart
         chart.data.datasets[0].data.push(val);
-        if (chart.data.datasets[0].data.length > 15) chart.data.datasets[0].data.shift();
-        chart.update();
+        chart.data.datasets[0].data.shift();
+        chart.update('none');
 
-        const indicator = document.getElementById('statusIndicator');
-        
+        // Logic Checks
+        const stress = document.getElementById('stressLevel');
         if (val > 60) {
-            indicator.innerText = "POSTURE: POOR - BENDING DETECTED";
-            indicator.className = "status-badge bad";
-            logIncident(val);
-            playBeep();
+            stress.innerText = "CRITICAL";
+            stress.style.color = "var(--danger)";
+            beep();
+            addLogRow(val);
         } else {
-            indicator.innerText = "POSTURE: OPTIMAL";
-            indicator.className = "status-badge good";
+            stress.innerText = "STABLE";
+            stress.style.color = "var(--success)";
         }
     }
 
-    function logIncident(val) {
+    function addLogRow(val) {
+        const table = document.getElementById('logTable');
+        const name = document.getElementById('pName').value || "Unknown User";
         const time = new Date().toLocaleTimeString();
-        const name = document.getElementById('displayName').innerText;
-        const entry = `${time} - Warning: ${name} exceeded flex threshold (${val}°)`;
         
-        historyData.unshift(entry);
-        localStorage.setItem('spineLogs', JSON.stringify(historyData.slice(0, 50)));
-        renderLogs();
+        // Prevents too many rows
+        if(table.rows.length > 5) table.deleteRow(-1);
+
+        const row = table.insertRow(0);
+        row.innerHTML = `<td>${time}</td><td>${name}</td><td>${val}°</td><td><span class="badge badge-danger">POSTURE BREACH</span></td>`;
     }
 
-    function renderLogs() {
-        const logDiv = document.getElementById('logs');
-        logDiv.innerHTML = historyData.map(item => `<div>${item}</div>`).join('');
+    function clearLogs() {
+        document.getElementById('logTable').innerHTML = "";
     }
 
-    function clearHistory() {
-        historyData = [];
-        localStorage.removeItem('spineLogs');
-        renderLogs();
-    }
-
-    // Run on Load
-    initChart();
-    renderLogs();
+    // Clock
+    setInterval(() => {
+        document.getElementById('clock').innerText = new Date().toLocaleTimeString();
+    }, 1000);
 </script>
 
 </body>
