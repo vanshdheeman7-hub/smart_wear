@@ -3,337 +3,327 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SpineGuard | Clinical Monitoring Suite</title>
+    <title>SpineGuard Zenith | Bio-Mechanical Analytics</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Plus+Jakarta+Sans:wght@300;400;600&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Syncopate:wght@400;700&family=Space+Grotesk:wght@300;500;700&display=swap');
 
         :root {
-            --bg: #05070a;
-            --panel: rgba(13, 17, 23, 0.85);
-            --accent: #00f2ff;
-            --critical: #ff3e3e;
-            --safe: #00ffaa;
-            --border: rgba(0, 242, 255, 0.2);
+            --bg-dark: #05020a;
+            --purple-glow: #7000ff;
+            --neon-blue: #00d2ff;
+            --critical-red: #ff0055;
+            --glass: rgba(0, 210, 255, 0.07);
+            --border-glow: rgba(112, 0, 255, 0.4);
         }
 
         body {
-            background-color: var(--bg);
+            background-color: var(--bg-dark);
             background-image: 
-                radial-gradient(at 0% 0%, rgba(0, 242, 255, 0.05) 0px, transparent 50%),
-                radial-gradient(at 100% 100%, rgba(255, 62, 62, 0.03) 0px, transparent 50%);
-            color: #e0e6ed;
-            font-family: 'Plus Jakarta Sans', sans-serif;
+                radial-gradient(circle at 20% 30%, rgba(112, 0, 255, 0.15) 0%, transparent 40%),
+                radial-gradient(circle at 80% 70%, rgba(0, 210, 255, 0.1) 0%, transparent 40%);
+            color: #ffffff;
+            font-family: 'Space Grotesk', sans-serif;
             margin: 0;
-            overflow-x: hidden;
+            padding: 20px;
             min-height: 100vh;
         }
 
-        /* Top Navigation Bar */
-        nav {
-            backdrop-filter: blur(15px);
-            background: rgba(5, 7, 10, 0.8);
-            border-bottom: 1px solid var(--border);
-            padding: 1.2rem 4%;
+        /* --- HEADER SECTION --- */
+        header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            position: sticky;
-            top: 0;
-            z-index: 1000;
+            padding: 20px 40px;
+            border-bottom: 2px solid var(--border-glow);
+            margin-bottom: 40px;
         }
 
-        .brand { font-family: 'Orbitron', sans-serif; font-size: 1.2rem; letter-spacing: 2px; color: var(--accent); }
+        .title-unit h1 {
+            font-family: 'Syncopate', sans-serif;
+            font-size: 2rem;
+            margin: 0;
+            background: linear-gradient(90deg, var(--neon-blue), var(--purple-glow));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-transform: uppercase;
+        }
 
-        .container {
-            max-width: 1400px;
-            margin: 2rem auto;
+        /* --- LAYOUT GRID --- */
+        .dashboard-grid {
+            max-width: 1600px;
+            margin: 0 auto;
             display: grid;
-            grid-template-columns: 380px 1fr 320px;
-            gap: 1.5rem;
-            padding: 0 20px;
+            grid-template-columns: 450px 1fr;
+            gap: 30px;
         }
 
-        /* Glass Panel Styling */
-        .glass-card {
-            background: var(--panel);
-            border: 1px solid var(--border);
-            border-radius: 24px;
-            padding: 1.8rem;
-            backdrop-filter: blur(12px);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+        .card {
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border-glow);
+            border-radius: 30px;
+            padding: 40px;
+            box-shadow: 0 0 50px rgba(112, 0, 255, 0.1);
+            position: relative;
+            overflow: hidden;
         }
 
-        .full-width { grid-column: 1 / -1; }
+        .card::before {
+            content: ""; position: absolute; top: 0; left: 0; width: 4px; height: 100%;
+            background: var(--neon-blue); box-shadow: 0 0 15px var(--neon-blue);
+        }
 
-        /* 3D Spine Simulation Segments */
-        .spine-view {
-            height: 280px;
-            background: rgba(0,0,0,0.4);
-            border-radius: 18px;
+        .full-row { grid-column: 1 / -1; }
+
+        /* --- BIG DATA ELEMENTS --- */
+        h2 { 
+            color: var(--neon-blue); font-family: 'Syncopate', sans-serif; 
+            font-size: 1rem; letter-spacing: 3px; margin-bottom: 30px; 
+        }
+
+        #patientInput {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--neon-blue);
+            padding: 20px;
+            font-size: 1.5rem;
+            color: white;
+            border-radius: 15px;
+            width: 100%;
+            box-sizing: border-box;
+            font-family: 'Space Grotesk';
+        }
+
+        .angle-display {
+            font-size: 6rem;
+            font-weight: 700;
+            color: white;
+            text-shadow: 0 0 30px var(--neon-blue);
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        /* --- THE SPINE MODEL --- */
+        .spine-container {
+            height: 400px;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            margin: 1.5rem 0;
-            border: 1px dashed rgba(255,255,255,0.1);
+            background: rgba(0,0,0,0.5);
+            border-radius: 20px;
+            margin: 20px 0;
         }
 
         .vertebra {
-            width: 45px;
-            height: 12px;
-            background: var(--accent);
-            margin: 3px;
-            border-radius: 4px;
-            box-shadow: 0 0 15px rgba(0, 242, 255, 0.3);
-            transition: all 0.3s ease;
+            width: 80px; height: 18px;
+            background: var(--neon-blue);
+            margin: 5px;
+            border-radius: 6px;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 0 20px var(--neon-blue);
         }
 
-        .vertebra.alarm { background: var(--critical); box-shadow: 0 0 20px var(--critical); }
-
-        /* Professional UI Elements */
-        input[type="text"] {
-            background: rgba(255,255,255,0.03);
-            border: 1px solid var(--border);
-            color: white;
-            padding: 12px;
-            border-radius: 12px;
-            width: 100%;
-            outline: none;
-            margin-bottom: 1rem;
+        .alert-mode {
+            background: var(--critical-red) !important;
+            box-shadow: 0 0 30px var(--critical-red) !important;
         }
 
-        .status-pill {
-            display: inline-block;
-            padding: 6px 14px;
-            border-radius: 50px;
-            font-size: 0.75rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            border: 1px solid currentColor;
-        }
-
-        .simulator-dock {
-            grid-column: span 3;
-            background: linear-gradient(90deg, #0d1117, #161b22);
-            padding: 30px;
-            border-radius: 24px;
-            border: 1px solid var(--border);
+        /* --- SIMULATION TOOL BAR --- */
+        .sim-dock {
+            margin-top: 50px;
+            padding: 50px;
+            background: rgba(20, 10, 40, 0.8);
+            border: 2px solid var(--purple-glow);
+            border-radius: 40px;
             display: flex;
             align-items: center;
-            gap: 40px;
+            gap: 50px;
         }
 
         input[type="range"] {
-            flex-grow: 1;
-            accent-color: var(--accent);
-            height: 8px;
+            flex: 1;
+            height: 20px;
             cursor: pointer;
+            accent-color: var(--neon-blue);
         }
 
-        /* History Table */
-        table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
-        th { text-align: left; font-size: 0.7rem; color: #64748b; padding: 12px; text-transform: uppercase; }
-        td { padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 0.85rem; }
+        .sim-label { font-family: 'Syncopate'; font-size: 1.2rem; color: var(--purple-glow); }
 
-        .beep-indicator {
-            width: 12px; height: 12px; border-radius: 50%;
-            background: #333; display: inline-block; margin-right: 8px;
+        /* --- LOGS TABLE --- */
+        table { width: 100%; border-collapse: collapse; font-size: 1.2rem; }
+        th { text-align: left; padding: 20px; color: var(--neon-blue); border-bottom: 1px solid var(--border-glow); }
+        td { padding: 20px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+
+        .status-tag {
+            background: rgba(255, 0, 85, 0.2);
+            color: var(--critical-red);
+            padding: 8px 15px;
+            border-radius: 8px;
+            font-weight: bold;
+            border: 1px solid var(--critical-red);
         }
-        .beep-active { background: var(--critical); box-shadow: 0 0 10px var(--critical); animation: blink 0.5s infinite; }
-
-        @keyframes blink { 50% { opacity: 0; } }
     </style>
 </head>
 <body>
 
-<nav>
-    <div class="brand">SPINEGUARD <span style="font-weight:300; opacity:0.6;">SYSTEMS</span></div>
-    <div style="display:flex; gap:20px; align-items:center;">
-        <div id="alarmTag" style="color: var(--safe); font-weight: bold; font-size: 0.8rem;">
-            <span class="beep-indicator" id="beepLight"></span> MONITORING ACTIVE
-        </div>
-        <div id="clock" style="font-family:'Orbitron'; font-size:0.9rem; color:var(--accent);">00:00:00</div>
+<header>
+    <div class="title-unit">
+        <h1>SPINEGUARD <span style="font-weight: 300;">V3-PRO</span></h1>
+        <div style="font-size: 0.8rem; letter-spacing: 4px; color: var(--purple-glow);">NEURAL-POSTURE INTERFACE</div>
     </div>
-</nav>
+    <div id="alarmStatus" style="font-size: 1.2rem; font-weight: bold; color: #555;">● STANDBY</div>
+</header>
 
-<div class="container">
+<div class="dashboard-grid">
     
-    <div class="glass-card">
-        <h3 style="margin-top:0; font-size:0.9rem; color:#888;">BIOMETRIC PROFILE</h3>
-        <input type="text" id="patientName" placeholder="Enter Patient ID/Name..." onchange="saveUser()">
+    <div class="card">
+        <h2>SUBJECT PROFILE</h2>
+        <input type="text" id="patientInput" placeholder="SUBJECT NAME..." onchange="saveName()">
         
-        <div class="spine-view" id="spineVisual">
+        <div class="spine-container" id="spineVisualizer">
             </div>
 
-        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-            <div style="background:rgba(0,0,0,0.3); padding:15px; border-radius:15px; text-align:center;">
-                <div style="font-size:1.5rem; font-weight:700; color:var(--accent);" id="angleVal">0°</div>
-                <div style="font-size:0.6rem; color:#888;">FLEX ANGLE</div>
-            </div>
-            <div style="background:rgba(0,0,0,0.3); padding:15px; border-radius:15px; text-align:center;">
-                <div style="font-size:1.5rem; font-weight:700; color:var(--safe);" id="postureStatus">GOOD</div>
-                <div style="font-size:0.6rem; color:#888;">DIAGNOSIS</div>
-            </div>
-        </div>
+        <div class="angle-display" id="mainAngle">0°</div>
+        <div id="statusText" style="text-align: center; font-size: 1.5rem; color: var(--neon-blue);">POSTURE OPTIMAL</div>
     </div>
 
-    <div class="glass-card">
-        <h3 style="margin-top:0; font-size:0.9rem; color:#888;">REAL-TIME DATA STREAM (L5-S1 SEGMENT)</h3>
-        <canvas id="telemetryChart" height="160"></canvas>
-        
-        <div style="margin-top:2rem;">
-            <h3 style="font-size:0.9rem; color:#888;">INCIDENT LOGS</h3>
+    <div class="card">
+        <h2>FLEX SENSOR TELEMETRY</h2>
+        <canvas id="bigChart" height="200"></canvas>
+
+        <div style="margin-top: 40px;">
+            <h2>INCIDENT ARCHIVE</h2>
             <table>
-                <thead><tr><th>Time</th><th>User</th><th>Deviation</th><th>Priority</th></tr></thead>
-                <tbody id="logList"></tbody>
+                <thead><tr><th>TIMESTAMP</th><th>USER</th><th>BEND ANGLE</th><th>THREAT LEVEL</th></tr></thead>
+                <tbody id="logHistory"></tbody>
             </table>
         </div>
     </div>
 
-    <div class="glass-card">
-        <h3 style="margin-top:0; font-size:0.9rem; color:#888;">HARDWARE NODES</h3>
-        <div style="font-size:0.8rem; line-height:1.8;">
-            <p><span style="color:var(--accent)">●</span> Controller: Arduino ATmega328P</p>
-            <p><span style="color:var(--accent)">●</span> Protocol: UART over USB</p>
-            <p><span style="color:var(--accent)">●</span> Alert: 5s Piezo Simulation</p>
-        </div>
-        <hr style="border:0; border-top:1px solid rgba(255,255,255,0.1); margin:1.5rem 0;">
-        <button onclick="purgeLogs()" style="width:100%; padding:12px; background:transparent; border:1px solid var(--critical); color:var(--critical); border-radius:12px; cursor:pointer; font-weight:bold;">PURGE HISTORY</button>
+    <div class="full-row sim-dock">
+        <div class="sim-label">SENSOR_EMULATION_FEED</div>
+        <input type="range" id="masterSim" min="0" max="100" value="0" oninput="updateSystem(this.value)">
+        <div style="font-size: 3rem; font-weight: bold; font-family: 'Syncopate'; width: 150px;" id="simPercent">0%</div>
     </div>
-
-    <div class="simulator-dock">
-        <div style="width:200px;">
-            <div style="font-weight:bold; letter-spacing:1px; font-size:0.9rem;">SENSOR EMULATOR</div>
-            <div style="font-size:0.7rem; color:#64748b;">Adjust physical bend</div>
-        </div>
-        <input type="range" id="masterSlider" min="0" max="100" value="0" oninput="processData(this.value)">
-        <div style="font-family:'Orbitron'; font-size:1.8rem; width:100px; text-align:right;" id="sliderDisplay">0%</div>
-    </div>
-
 </div>
 
 <script>
-    // Initialize Spine
-    const spineContainer = document.getElementById('spineVisual');
+    // Create Spine Segments
+    const spine = document.getElementById('spineVisualizer');
     const segments = [];
-    for(let i=0; i<10; i++){
-        const div = document.createElement('div');
-        div.className = 'vertebra';
-        spineContainer.appendChild(div);
-        segments.push(div);
+    for(let i=0; i<12; i++) {
+        const seg = document.createElement('div');
+        seg.className = 'vertebra';
+        spine.appendChild(seg);
+        segments.push(seg);
     }
 
-    // Charting Setup
-    const ctx = document.getElementById('telemetryChart').getContext('2d');
+    // High Resolution Chart
+    const ctx = document.getElementById('bigChart').getContext('2d');
     const chart = new Chart(ctx, {
         type: 'line',
         data: {
-            labels: Array(40).fill(''),
+            labels: Array(50).fill(''),
             datasets: [{
-                data: Array(40).fill(0),
-                borderColor: '#00f2ff',
-                borderWidth: 2,
+                data: Array(50).fill(0),
+                borderColor: '#00d2ff',
+                backgroundColor: 'rgba(0, 210, 255, 0.1)',
+                borderWidth: 4,
                 pointRadius: 0,
                 fill: true,
-                backgroundColor: 'rgba(0, 242, 255, 0.05)',
                 tension: 0.4
             }]
         },
         options: {
+            responsive: true,
             scales: { 
-                y: { beginAtZero: true, max: 100, grid: { color: 'rgba(255,255,255,0.05)' } },
+                y: { beginAtZero: true, max: 100, grid: { color: 'rgba(112, 0, 255, 0.1)' }, ticks: { color: '#00d2ff', font: { size: 14 } } },
                 x: { display: false }
             },
             plugins: { legend: { display: false } }
         }
     });
 
-    let isBeeping = false;
-    let alarmTimeout;
+    let activeAlarm = false;
 
-    function trigger5SecBeep() {
-        if (isBeeping) return; // Don't restart if already beeping
+    function start5SecAlarm() {
+        if (activeAlarm) return;
+        activeAlarm = true;
+
+        const alarmUI = document.getElementById('alarmStatus');
+        alarmUI.innerText = "● CRITICAL ALARM ACTIVE";
+        alarmUI.style.color = "var(--critical-red)";
         
-        isBeeping = true;
-        document.getElementById('beepLight').classList.add('beep-active');
-        document.getElementById('alarmTag').style.color = 'var(--critical)';
-
+        // Audio
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
-
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-        osc.type = 'square';
-        osc.frequency.value = 880; 
-        gain.gain.value = 0.05;
-
-        osc.start();
+        osc.connect(gain); gain.connect(audioCtx.destination);
         
-        // Stop after 5 seconds exactly
+        osc.type = 'square';
+        osc.frequency.value = 900;
+        gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+        
+        osc.start();
+
         setTimeout(() => {
             osc.stop();
-            isBeeping = false;
-            document.getElementById('beepLight').classList.remove('beep-active');
-            document.getElementById('alarmTag').style.color = 'var(--safe)';
+            activeAlarm = false;
+            alarmUI.innerText = "● STANDBY";
+            alarmUI.style.color = "#555";
         }, 5000);
     }
 
-    function processData(val) {
-        document.getElementById('sliderDisplay').innerText = val + "%";
-        document.getElementById('angleVal').innerText = val + "°";
+    function updateSystem(val) {
+        document.getElementById('simPercent').innerText = val + "%";
+        document.getElementById('mainAngle').innerText = val + "°";
         
-        // Update 3D Visualizer
-        segments.forEach((s, i) => {
-            const rot = (val / 12) * (i * 0.4);
-            s.style.transform = `rotate(${rot}deg) translateX(${rot/2}px)`;
-            if(val > 60) s.classList.add('alarm');
-            else s.classList.remove('alarm');
-        });
-
-        // Update Diagnosis
-        const status = document.getElementById('postureStatus');
-        if(val > 60) {
-            status.innerText = "CRITICAL";
-            status.style.color = "var(--critical)";
-            trigger5SecBeep();
-            addLog(val);
-        } else {
-            status.innerText = "GOOD";
-            status.style.color = "var(--safe)";
-        }
-
         // Update Chart
         chart.data.datasets[0].data.push(val);
         chart.data.datasets[0].data.shift();
         chart.update('none');
+
+        // Update Spine Visuals
+        segments.forEach((s, i) => {
+            const angle = (val / 10) * (i * 0.4);
+            s.style.transform = `rotate(${angle}deg) translateX(${angle/2}px)`;
+            
+            if (val > 60) {
+                s.classList.add('alert-mode');
+                document.getElementById('statusText').innerText = "ALERT: SPINAL STRAIN";
+                document.getElementById('statusText').style.color = "var(--critical-red)";
+                start5SecAlarm();
+                addLog(val);
+            } else {
+                s.classList.remove('alert-mode');
+                document.getElementById('statusText').innerText = "POSTURE OPTIMAL";
+                document.getElementById('statusText').style.color = "var(--neon-blue)";
+            }
+        });
     }
 
     function addLog(val) {
-        const table = document.getElementById('logList');
-        const name = document.getElementById('patientName').value || "Guest User";
+        const table = document.getElementById('logHistory');
+        const name = document.getElementById('patientInput').value || "ANONYMOUS";
         const time = new Date().toLocaleTimeString();
         
-        if (table.rows.length > 6) table.deleteRow(-1);
+        // Prevent duplicate spamming
+        const lastRow = table.rows[0];
+        if (lastRow && (new Date().getTime() - lastRow.dataset.time < 3000)) return;
+
         const row = table.insertRow(0);
-        row.innerHTML = `<td>${time}</td><td>${name}</td><td>${val}°</td><td><span class="status-pill" style="color:var(--critical)">CRITICAL</span></td>`;
+        row.dataset.time = new Date().getTime();
+        row.innerHTML = `<td>${time}</td><td>${name}</td><td>${val}°</td><td><span class="status-tag">CRITICAL BREACH</span></td>`;
+        if (table.rows.length > 8) table.deleteRow(-1);
     }
 
-    function saveUser() {
-        localStorage.setItem('spineUser', document.getElementById('patientName').value);
+    function saveName() {
+        localStorage.setItem('spineSubject', document.getElementById('patientInput').value);
     }
-
-    function purgeLogs() {
-        document.getElementById('logList').innerHTML = "";
-    }
-
-    setInterval(() => {
-        document.getElementById('clock').innerText = new Date().toLocaleTimeString();
-    }, 1000);
 
     window.onload = () => {
-        document.getElementById('patientName').value = localStorage.getItem('spineUser') || "";
+        document.getElementById('patientInput').value = localStorage.getItem('spineSubject') || "";
     };
 </script>
 
