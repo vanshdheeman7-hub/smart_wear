@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SpineGuard V4 | Clinical Analytics</title>
+    <title>SpineGuard V4 | Elite Analytics</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Syncopate:wght@400;700&family=Space+Grotesk:wght@300;500;700&display=swap');
@@ -106,7 +106,7 @@
     </div>
 
     <div class="card">
-        <h2>Postural Trend: Angle vs. Duration</h2>
+        <h2>Slouch Analytics: Angle vs. Duration</h2>
         <canvas id="analyticsChart" height="240"></canvas>
         <div style="display:flex; justify-content:space-between; margin-top:20px; font-weight:bold; color:var(--neon-blue);">
             <div>← DURATION (SECONDS)</div>
@@ -131,9 +131,9 @@
     </div>
 
     <div class="full-width sim-dock">
-        <div style="font-family:'Syncopate'; font-size:0.9rem; color:var(--lightning-purple);">BEND_DEGREES_SIM</div>
-        <input type="range" id="masterSlider" min="0" max="120" value="0" oninput="updateSystem(this.value)">
-        <div id="simReadout" style="font-size:3rem; font-weight:bold; color:var(--neon-blue); width:120px; text-align:right;">0°</div>
+        <div style="font-family:'Syncopate'; font-size:0.9rem; color:var(--lightning-purple);">BEND_SIMULATOR</div>
+        <input type="range" id="masterSlider" min="0" max="110" value="0" oninput="updateSystem(this.value)">
+        <div id="simReadout" style="font-size:3rem; font-weight:bold; color:var(--neon-blue); width:120px; text-align:right;">0%</div>
     </div>
 
 </div>
@@ -143,38 +143,24 @@
     let alarmOn = false;
     let sessionPeakAngle = 0;
 
-    // Initialize Connected Scatter/Line Chart
+    // Initialize Scatter Chart
     const ctx = document.getElementById('analyticsChart').getContext('2d');
     const analyticsChart = new Chart(ctx, {
-        type: 'line', // Changed to line to connect the dots
+        type: 'scatter',
         data: {
             datasets: [{
-                label: 'Slouch Progression',
+                label: 'Slouch Events',
                 data: [], 
-                backgroundColor: 'rgba(255, 0, 85, 0.2)',
+                backgroundColor: 'rgba(255, 0, 85, 0.7)',
                 borderColor: '#ff0055',
-                borderWidth: 3,
-                pointRadius: 8,
-                pointBackgroundColor: '#00f2ff',
-                showLine: true, // Ensures dots are connected
-                tension: 0.3 // Adds a professional curve to the connection
+                borderWidth: 2,
+                pointRadius: 12
             }]
         },
         options: {
             scales: {
-                x: { 
-                    type: 'linear',
-                    title: { display: true, text: 'TIME DURATION (SECONDS)', color: '#00f2ff' }, 
-                    grid: { color: 'rgba(255,255,255,0.05)' }, 
-                    ticks: { color: '#fff' }, 
-                    beginAtZero: true 
-                },
-                y: { 
-                    title: { display: true, text: 'ANGLE (°)', color: '#00f2ff' }, 
-                    grid: { color: 'rgba(255,255,255,0.05)' }, 
-                    ticks: { color: '#fff' }, 
-                    beginAtZero: true, max: 120 
-                }
+                x: { title: { display: true, text: 'TIME DURATION (SECONDS)', color: '#00f2ff' }, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#fff' }, beginAtZero: true },
+                y: { title: { display: true, text: 'ANGLE (°)', color: '#00f2ff' }, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#fff' }, beginAtZero: true, max: 120 }
             },
             plugins: { legend: { display: false } }
         }
@@ -194,18 +180,18 @@
 
     function updateSystem(val) {
         const v = parseInt(val);
-        document.getElementById('simReadout').innerText = v + "°"; // Changed readout to Degrees
+        document.getElementById('simReadout').innerText = v + "%";
         document.getElementById('angleDisplay').innerText = v + "°";
         
         const timerUI = document.getElementById('breachTimer');
         const status = document.getElementById('statusLabel');
 
-        if (v > 65) {
+        if (v > 45) {
             if (!slouchStartTime) {
                 slouchStartTime = Date.now();
                 sessionPeakAngle = v;
                 timerUI.style.display = 'block';
-                status.innerText = "STATUS: MONITORING..."; // Removed 'Breach Detected'
+                status.innerText = "STATUS: BREACH DETECTED";
                 status.style.color = "var(--alert-red)";
                 playAlert();
             }
@@ -226,9 +212,7 @@
     }
 
     function finalizeIncident(duration, angle) {
-        // Log new point and sort by duration to keep the line clean
         analyticsChart.data.datasets[0].data.push({ x: parseFloat(duration), y: angle });
-        analyticsChart.data.datasets[0].data.sort((a, b) => a.x - b.x); 
         analyticsChart.update();
 
         const log = document.getElementById('incidentLog');
