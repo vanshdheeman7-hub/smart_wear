@@ -132,7 +132,7 @@
 
     <div class="full-width sim-dock">
         <div style="font-family:'Syncopate'; font-size:0.9rem; color:var(--lightning-purple);">BEND_SIMULATOR</div>
-        <input type="range" id="masterSlider" min="0" max="110" value="0" oninput="updateSystem(this.value)">
+        <input type="range" id="masterSlider" min="0" max="120" value="0" oninput="updateSystem(this.value)">
         <div id="simReadout" style="font-size:3rem; font-weight:bold; color:var(--neon-blue); width:120px; text-align:right;">0%</div>
     </div>
 
@@ -180,7 +180,7 @@
 
     function updateSystem(val) {
         const v = parseInt(val);
-        document.getElementById('simReadout').innerText = v + "%";
+        document.getElementById('simReadout').innerText = v + "°";
         document.getElementById('angleDisplay').innerText = v + "°";
         
         const timerUI = document.getElementById('breachTimer');
